@@ -1,11 +1,19 @@
 from enum import StrEnum
 from typing import Any
 
+from django.db.models import Q
+
 from sentry.models.activity import Activity
 from sentry.types.activity import ActivityType
+from sentry.utils.action_log.activity_translator import ACTIVITY_TYPE_TO_GROUP_ACTION_TYPE
 from sentry.workflow_engine.models.data_condition import Condition
+from sentry.workflow_engine.preview import (
+    InvalidPreviewConfiguration,
+    PreviewPlan,
+    WorkflowTriggerPreviewBehavior,
+)
 from sentry.workflow_engine.registry import condition_handler_registry
-from sentry.workflow_engine.types import DataConditionHandler, WorkflowEventData
+from sentry.workflow_engine.types import WorkflowEventData, WorkflowTriggerDataConditionHandler
 
 
 class SeerActivityTriggerStage(StrEnum):
@@ -31,9 +39,28 @@ This is the source of truth for what can be configured and evaluated.
 """
 
 
+class SeerActivityPreviewBehavior(WorkflowTriggerPreviewBehavior):
+    def add_to_preview(self, plan: PreviewPlan, comparison: Any) -> None:
+        if not isinstance(comparison, list) or not all(
+            isinstance(stage, str) for stage in comparison
+        ):
+            raise InvalidPreviewConfiguration("Seer stages must be a list of strings")
+
+        stages = [
+            SeerActivityTriggerStage.PR_READY_FOR_REVIEW if stage == "pr_created" else stage
+            for stage in comparison
+            if stage in SEER_STAGE_TO_ACTIVITY_TYPE or stage == "pr_created"
+        ]
+        action_types = [
+            ACTIVITY_TYPE_TO_GROUP_ACTION_TYPE[SEER_STAGE_TO_ACTIVITY_TYPE[stage]].get_type().value
+            for stage in stages
+        ]
+        plan.add_group_action_log_candidates(Q(type__in=action_types))
+
+
 @condition_handler_registry.register(Condition.SEER_ACTIVITY_TRIGGER)
-class SeerActivityTriggerHandler(DataConditionHandler[WorkflowEventData]):
-    group = DataConditionHandler.Group.WORKFLOW_TRIGGER
+class SeerActivityTriggerHandler(WorkflowTriggerDataConditionHandler):
+    preview_behavior = SeerActivityPreviewBehavior()
     comparison_json_schema = {
         "type": "array",
         "items": {"type": "string", "enum": list(SEER_STAGE_TO_ACTIVITY_TYPE.keys())},

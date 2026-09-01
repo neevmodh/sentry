@@ -1,11 +1,15 @@
 import pytest
+from django.db.models import Q
 from jsonschema import ValidationError
 
+from sentry.issues.action_log.types import SeerPRReadyForReviewAction, SeerRCACompletedAction
 from sentry.types.activity import ActivityType
 from sentry.workflow_engine.handlers.condition.seer_activity_trigger_handler import (
+    SeerActivityTriggerHandler,
     SeerActivityTriggerStage,
 )
 from sentry.workflow_engine.models.data_condition import Condition
+from sentry.workflow_engine.preview import InvalidPreviewConfiguration, PreviewPlan
 from sentry.workflow_engine.types import WorkflowEventData
 from tests.sentry.workflow_engine.handlers.condition.test_base import ConditionTestCase
 
@@ -28,6 +32,30 @@ class TestSeerActivityTriggerHandler(ConditionTestCase):
     def test_evaluate_value__matching_single_stage(self) -> None:
         event_data = self._create_event_data(ActivityType.SEER_RCA_COMPLETED)
         self.assert_passes(self.dc, event_data)
+
+    def test_preview_ignores_unknown_stages(self) -> None:
+        plan = PreviewPlan()
+
+        SeerActivityTriggerHandler.preview_behavior.add_to_preview(
+            plan, [SeerActivityTriggerStage.RCA_COMPLETED, "rca_started"]
+        )
+
+        assert plan.group_action_log_candidate_filters == [
+            Q(type__in=[SeerRCACompletedAction.get_type().value])
+        ]
+
+    def test_preview_rejects_invalid_comparison(self) -> None:
+        with pytest.raises(InvalidPreviewConfiguration):
+            SeerActivityTriggerHandler.preview_behavior.add_to_preview(PreviewPlan(), [1])
+
+    def test_preview_supports_legacy_pr_created_stage(self) -> None:
+        plan = PreviewPlan()
+
+        SeerActivityTriggerHandler.preview_behavior.add_to_preview(plan, ["pr_created"])
+
+        assert plan.group_action_log_candidate_filters == [
+            Q(type__in=[SeerPRReadyForReviewAction.get_type().value])
+        ]
 
     def test_evaluate_value__non_matching_stage(self) -> None:
         event_data = self._create_event_data(ActivityType.SEER_PR_CREATED)
