@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     from sentry.workflow_engine.models import Action, Detector
     from sentry.workflow_engine.models.data_condition import Condition
     from sentry.workflow_engine.models.data_source import DataSource
+    from sentry.workflow_engine.preview import AlertPreviewBehavior
 
 T = TypeVar("T")
 
@@ -237,6 +238,7 @@ class DataConditionHandler(Generic[T]):
     subgroup: ClassVar[Subgroup]
     comparison_json_schema: ClassVar[dict[str, Any]]
     condition_result_schema: ClassVar[dict[str, Any]] = {}
+    preview_behavior: ClassVar[AlertPreviewBehavior]
     label_template = ""
 
     @staticmethod
