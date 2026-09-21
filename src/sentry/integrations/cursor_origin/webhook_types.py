@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError, validator
 
@@ -90,6 +90,29 @@ class PushEvent(OriginModel):
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> PushEvent:
+        try:
+            return cls.parse_obj(payload)
+        except ValidationError as e:
+            raise OriginPayloadError(str(e)) from e
+
+
+class InstallationTarget(OriginModel):
+    slug: str = Field(min_length=1)
+    id: str = Field(min_length=1)
+    type: Literal["team", "user"] | None = None
+
+
+class Installation(OriginModel):
+    target: InstallationTarget
+    scopes: list[str]
+    repo_selection_mode: Literal["all", "selected"] = Field(alias="repoSelectionMode")
+
+
+class InstallationEvent(OriginModel):
+    installation: Installation
+
+    @classmethod
+    def from_payload(cls, payload: Mapping[str, Any]) -> InstallationEvent:
         try:
             return cls.parse_obj(payload)
         except ValidationError as e:
