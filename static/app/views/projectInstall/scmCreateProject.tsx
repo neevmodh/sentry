@@ -7,7 +7,6 @@ import {Container, Flex, Stack} from '@sentry/scraps/layout';
 import {ExternalLink} from '@sentry/scraps/link';
 import {Separator} from '@sentry/scraps/separator';
 import {Heading, Text} from '@sentry/scraps/text';
-import {Tooltip} from '@sentry/scraps/tooltip';
 
 import {Access} from 'sentry/components/acl/access';
 import * as Layout from 'sentry/components/layouts/thirds';
@@ -385,17 +384,16 @@ function ScmCreateProjectWizard({initialState}: {initialState: WizardState}) {
               >
                 <ProjectCreationErrorAlert error={form.error} />
                 <Flex justify="end">
-                  <Tooltip title={submitTooltipText} disabled={!submitTooltipText}>
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      disabled={!form.canSubmit}
-                      busy={form.isBusy}
-                      icon={<IconProject />}
-                    >
-                      {t('Create project')}
-                    </Button>
-                  </Tooltip>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={!form.canSubmit}
+                    busy={form.isBusy}
+                    icon={<IconProject />}
+                    tooltipProps={{title: submitTooltipText}}
+                  >
+                    {t('Create project')}
+                  </Button>
                 </Flex>
               </MotionStack>
             </LayoutGroup>
