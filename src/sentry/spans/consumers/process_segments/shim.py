@@ -38,6 +38,24 @@ def make_compatible(span: SpanEvent) -> CompatibleSpan:
     return ret
 
 
+def _extract_attribute_values(
+    segment_span: CompatibleSpan | SpanEvent, attribute_to_field_map: dict[str, str]
+) -> dict[str, Any]:
+    """
+    Pull data from the segment span's attributes for every field in the given map.
+
+    Returns a dict of all non-null, non-empty values found, keyed by event field name.
+    """
+    values_by_field_name = {}
+
+    for attribute_name, field_name in attribute_to_field_map.items():
+        value = attribute_value(segment_span, attribute_name)
+        if value not in {"", None}:
+            values_by_field_name[field_name] = value
+
+    return values_by_field_name
+
+
 def _sentry_tags(attributes: dict[str, Any]) -> dict[str, str]:
     """Backfill sentry tags used in performance issue detection.
 
