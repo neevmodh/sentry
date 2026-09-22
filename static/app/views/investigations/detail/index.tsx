@@ -3,7 +3,6 @@ import styled from '@emotion/styled';
 import {useDebouncer} from '@tanstack/react-pacer';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 
-import {Alert} from '@sentry/scraps/alert';
 import {Tag} from '@sentry/scraps/badge';
 import {DropdownMenu} from '@sentry/scraps/dropdownMenu';
 import {Input} from '@sentry/scraps/input';
@@ -70,18 +69,6 @@ function FeatureDisabledPage() {
         features="organizations:investigations"
         featureName={t('Investigations')}
       />
-    </Stack>
-  );
-}
-
-function ClosedMembershipPage() {
-  return (
-    <Stack flex={1} padding="2xl 3xl">
-      <Alert.Container>
-        <Alert variant="warning">
-          {t('Investigations are only available to organizations with open membership.')}
-        </Alert>
-      </Alert.Container>
     </Stack>
   );
 }
@@ -558,11 +545,7 @@ export default function InvestigationDetailView() {
         features="organizations:investigations"
         renderDisabled={() => <FeatureDisabledPage />}
       >
-        {organization.openMembership ? (
-          <InvestigationBootstrapPage investigationId={investigationId} />
-        ) : (
-          <ClosedMembershipPage />
-        )}
+        <InvestigationBootstrapPage investigationId={investigationId} />
       </Feature>
     </AnalyticsArea>
   );

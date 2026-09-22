@@ -1771,10 +1771,10 @@ describe('Investigation detail', () => {
     expect(request).not.toHaveBeenCalled();
   });
 
-  it('does not bootstrap for a closed-membership organization', () => {
-    const request = MockApiClient.addMockResponse({
+  it('loads the investigation for a closed-membership organization', async () => {
+    MockApiClient.addMockResponse({
       url: detailUrl,
-      body: investigationWithQueryResult(),
+      body: {...investigationWithQueryResult(), title: 'Shared investigation'},
     });
 
     renderView(
@@ -1784,12 +1784,7 @@ describe('Investigation detail', () => {
       })
     );
 
-    expect(
-      screen.getByText(
-        'Investigations are only available to organizations with open membership.'
-      )
-    ).toBeInTheDocument();
-    expect(request).not.toHaveBeenCalled();
+    expect(await screen.findByText('Shared investigation')).toBeInTheDocument();
   });
 
   // `orchestration` being present is the only thing that marks an investigation

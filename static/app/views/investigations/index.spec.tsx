@@ -70,8 +70,11 @@ describe('Explore Investigations', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('shows the feature-disabled state for a closed-membership organization', () => {
-    const listRequest = MockApiClient.addMockResponse({url: listUrl, body: []});
+  it('loads investigations for a closed-membership organization', async () => {
+    MockApiClient.addMockResponse({
+      url: listUrl,
+      body: [InvestigationFixture({title: 'Shared investigation'})],
+    });
 
     renderView({
       renderOrganization: OrganizationFixture({
@@ -81,11 +84,8 @@ describe('Explore Investigations', () => {
     });
 
     expect(
-      screen.getByText(
-        'Investigations are only available to organizations with open membership.'
-      )
+      await screen.findByRole('link', {name: 'Shared investigation'})
     ).toBeInTheDocument();
-    expect(listRequest).not.toHaveBeenCalled();
   });
 
   it('renders loading and populated table states without unsupported controls', async () => {

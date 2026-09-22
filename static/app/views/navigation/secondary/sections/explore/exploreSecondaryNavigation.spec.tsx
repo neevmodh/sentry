@@ -56,7 +56,7 @@ describe('ExploreSecondaryNavigation', () => {
     );
 
     expect(screen.getByText('Traces')).toBeInTheDocument();
-    expect(screen.queryByText('Investigations')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', {name: /Investigations/})).not.toBeInTheDocument();
   });
 
   it('shows Investigations when the feature is enabled', () => {
@@ -126,7 +126,7 @@ describe('ExploreSecondaryNavigation', () => {
     );
   });
 
-  it('hides Investigations for a closed-membership organization', () => {
+  it('shows Investigations for a closed-membership organization', () => {
     const {organization: closedMembershipOrganization} = initializeOrg({
       organization: {
         features: ['performance-view', 'visibility-explore-view', 'investigations'],
@@ -151,7 +151,7 @@ describe('ExploreSecondaryNavigation', () => {
       }
     );
 
-    expect(screen.queryByText('Investigations')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', {name: /Investigations/})).toBeInTheDocument();
   });
 
   it('marks Releases as active on preprod pages', () => {

@@ -110,15 +110,4 @@ export default Storybook.story('Investigations — List', story => {
       </Container>
     </InvestigationFixtureApi>
   ));
-
-  story('Closed membership', () => (
-    <InvestigationFixtureApi
-      organizationSlug="storybook-investigations-closed-membership"
-      openMembership={false}
-    >
-      <Container minHeight="240px" border="primary" radius="md" overflow="hidden">
-        <InvestigationsView />
-      </Container>
-    </InvestigationFixtureApi>
-  ));
 });
